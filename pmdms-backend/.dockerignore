@@ -1,0 +1,17 @@
+/node_modules
+/vendor
+.env
+.git
+.dockerignore
+Dockerfile
+/storage/*.key
+/public/hot
+/public/storage
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/logs/*
+phpunit.xml
+.editorconfig
+.gitattributes
