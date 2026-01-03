@@ -1,0 +1,24 @@
+{
+    "version": 2,
+    "framework": null,
+    "functions": {
+        "api/*.php": {
+            "runtime": "vercel-php@0.7.3"
+        },
+        "public/index.php": {
+            "runtime": "vercel-php@0.7.3"
+        }
+    },
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "/public/index.php"
+        }
+    ],
+    "env": {
+        "APP_ENV": "production",
+        "APP_DEBUG": "true",
+        "APP_URL": "https://beuta-inventory-system.vercel.app",
+        "DB_CONNECTION": "pgsql"
+    }
+}
