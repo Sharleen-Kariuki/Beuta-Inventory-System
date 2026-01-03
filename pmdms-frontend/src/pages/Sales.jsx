@@ -17,19 +17,13 @@ export default function SalesView() {
     // React Hook Form for Create Sale
     const { register, control, handleSubmit, watch, setValue, reset } = useForm({
         defaultValues: {
-            items: [{ product_id: "", qty: 1 }],
-            installments: []
+            items: [{ product_id: "", qty: 1 }]
         }
     })
 
     const { fields, append, remove } = useFieldArray({
         control,
         name: "items"
-    });
-
-    const { fields: instFields, append: appendInst, remove: removeInst, replace: replaceInsts } = useFieldArray({
-        control,
-        name: "installments"
     });
 
     const fetchSales = () => {
@@ -54,30 +48,31 @@ export default function SalesView() {
     }, [])
 
     const openCreateModal = () => {
-        reset({ items: [{ product_id: "", qty: 1 }], installments: [] })
+        reset({ items: [{ product_id: "", qty: 1 }], num_installments: 1 })
         setIsModalOpen(true)
-    }
-
-    const autoGenerateInstallments = () => {
-        const count = parseInt(watch("num_installments") || 1);
-        const total = calculateTotal();
-        if (total <= 0) return;
-
-        const amt = (total / count).toFixed(2);
-        const newInsts = [];
-        for (let i = 1; i <= count; i++) {
-            const d = new Date();
-            d.setDate(d.getDate() + (i * 30));
-            newInsts.push({
-                amount: amt,
-                due_date: d.toISOString().split('T')[0]
-            });
-        }
-        replaceInsts(newInsts);
     }
 
     const onSubmit = async (data) => {
         try {
+            // Generate installments array if multiple installments are requested
+            if ((data.payment_status === 'credit' || data.payment_status === 'partial') && data.num_installments > 1) {
+                const total = calculateTotal();
+                const count = parseInt(data.num_installments);
+                const amt = total / count;
+                const installments = [];
+
+                // We'll space them out monthly (every 30 days) from now
+                for (let i = 1; i <= count; i++) {
+                    const d = new Date();
+                    d.setDate(d.getDate() + (i * 30));
+                    installments.push({
+                        amount: amt.toFixed(2),
+                        due_date: d.toISOString().split('T')[0]
+                    });
+                }
+                data.installments = installments;
+            }
+
             await api.post('/sales', data)
             setIsModalOpen(false)
             fetchSales()
@@ -236,68 +231,36 @@ export default function SalesView() {
 
                     {(watch("payment_status") === "credit" || watch("payment_status") === "partial") && (
                         <div className="space-y-4 border-t border-slate-100 pt-4">
-                            <h4 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Payment Schedule</h4>
-
-                            <div className="grid grid-cols-12 gap-2 items-end">
-                                <div className="col-span-12 md:col-span-5">
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Due Date (Final)</label>
-                                    <input type="date" {...register("due_date", { required: true })} className="w-full border-slate-300 rounded-lg p-2 border text-sm" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Due Date (Final)</label>
+                                    <input
+                                        type="date"
+                                        {...register("due_date", { required: true })}
+                                        className="w-full border-slate-300 rounded-lg p-2 border"
+                                    />
+                                    <p className="text-[10px] text-slate-500 mt-1">When is the full balance expected?</p>
                                 </div>
-                                <div className="col-span-8 md:col-span-5">
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Split into X installments</label>
-                                    <input type="number" min="1" {...register("num_installments")} className="w-full border-slate-300 rounded-lg p-2 border text-sm" placeholder="e.g. 3" />
-                                </div>
-                                <div className="col-span-4 md:col-span-2">
-                                    <button
-                                        type="button"
-                                        onClick={autoGenerateInstallments}
-                                        className="w-full bg-slate-100 text-slate-600 hover:bg-slate-200 p-2 rounded-lg text-xs font-bold transition-colors"
-                                    >
-                                        SPLIT
-                                    </button>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Installments count</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        {...register("num_installments")}
+                                        className="w-full border-slate-300 rounded-lg p-2 border"
+                                        placeholder="1"
+                                    />
                                 </div>
                             </div>
 
-                            <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                                {instFields.map((field, index) => (
-                                    <div key={field.id} className="flex space-x-2 items-center bg-slate-50 p-2 rounded-lg border border-slate-100">
-                                        <input
-                                            type="date"
-                                            {...register(`installments.${index}.due_date`, { required: true })}
-                                            className="flex-1 border-slate-300 rounded p-1.5 text-xs"
-                                        />
-                                        <div className="flex items-center space-x-1 bg-white border border-slate-300 rounded p-1.5 w-32">
-                                            <span className="text-[10px] text-slate-400 font-bold">KSh</span>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                {...register(`installments.${index}.amount`, { required: true })}
-                                                className="w-full border-none focus:ring-0 p-0 text-xs text-right font-bold text-teal-700"
-                                                placeholder="0.00"
-                                            />
-                                        </div>
-                                        <button type="button" onClick={() => removeInst(index)} className="text-red-400 hover:text-red-600 px-1">&times;</button>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="flex justify-between items-center px-2">
-                                <button
-                                    type="button"
-                                    onClick={() => appendInst({ amount: "", due_date: "" })}
-                                    className="text-xs font-bold text-teal-600 hover:underline"
-                                >
-                                    + Add Custom Installment
-                                </button>
-                                <div className="text-right">
-                                    <span className="text-[10px] text-slate-400 font-bold block uppercase">Total Scheduled</span>
-                                    <span className={`text-sm font-bold ${Math.abs((watch("installments") || []).reduce((sum, i) => sum + parseFloat(i.amount || 0), 0) - calculateTotal()) < 0.1
-                                        ? 'text-teal-600' : 'text-rose-500'
-                                        }`}>
-                                        KSh {(watch("installments") || []).reduce((sum, i) => sum + parseFloat(i.amount || 0), 0).toLocaleString()}
+                            {watch("num_installments") > 1 && (
+                                <div className="bg-teal-50 p-3 rounded-lg flex justify-between items-center border border-teal-100">
+                                    <span className="text-sm font-medium text-teal-800">Amount per installment:</span>
+                                    <span className="text-lg font-bold text-teal-700">
+                                        KSh {(calculateTotal() / watch("num_installments")).toLocaleString()}
                                     </span>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     )}
 
