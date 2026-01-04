@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import {
   BeakerIcon,
   ArrowTrendingUpIcon,
@@ -57,11 +57,12 @@ function App() {
 
 function DashboardLayout() {
   const user = JSON.parse(localStorage.getItem('user') || '{}')
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
-    window.location.href = '/login'
+    navigate('/login')
   }
 
   return (
