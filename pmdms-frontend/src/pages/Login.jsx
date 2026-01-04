@@ -15,7 +15,6 @@ export default function Login() {
         e.preventDefault()
         setError('')
         try {
-            await api.get('/sanctum/csrf-cookie', { baseURL: '' });
             const res = await api.post('/login', { email, password })
 
             localStorage.setItem('token', res.data.token)
