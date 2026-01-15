@@ -103,26 +103,55 @@ class ReportController extends Controller
         $revenue = Sale::whereBetween('date', [$startDate, $endDate])->sum('total_amount');
 
         // 2. Cost of Goods Sold (COGS)
-        // Calculate based on sales items * current recipe cost
-        // Note: This uses CURRENT raw material costs, not historical.
-        $saleItems = SaleItem::whereHas('sale', function ($q) use ($startDate, $endDate) {
+        $saleItems = SaleItem::with('product')->whereHas('sale', function ($q) use ($startDate, $endDate) {
             $q->whereBetween('date', [$startDate, $endDate]);
         })->get();
 
         $cogs = 0;
+        $cogsBreakdown = [];
+
         foreach ($saleItems as $item) {
-            // Find recipe for product
-            $recipe = \App\Models\Recipe::where('product_id', $item->product_id)->where('is_active', true)->with('items.rawMaterial')->first();
+            $recipe = \App\Models\Recipe::where('product_id', $item->product_id)
+                ->where('is_active', true)
+                ->with('items.rawMaterial')
+                ->first();
+
             if ($recipe) {
-                $recipeCost = $recipe->items->sum(function ($ri) {
-                    if (!$ri->rawMaterial)
-                        return 0;
-                    return ($ri->quantity_required * $ri->rawMaterial->cost_price);
-                });
-                // Adjust for base quantity yield
+                $recipeCost = 0;
+                $ingredients = [];
+                foreach ($recipe->items as $ri) {
+                    if ($ri->rawMaterial) {
+                        $lineCost = ($ri->quantity_required * $ri->rawMaterial->cost_price);
+                        $recipeCost += $lineCost;
+                        $ingredients[] = [
+                            'material' => $ri->rawMaterial->name,
+                            'qty' => $ri->quantity_required,
+                            'unit' => $ri->rawMaterial->unit,
+                            'cost_price' => $ri->rawMaterial->cost_price,
+                            'total' => round($lineCost, 2)
+                        ];
+                    }
+                }
+
                 $baseQty = (float) ($recipe->base_quantity ?? 1);
                 $unitCost = $baseQty > 0 ? ($recipeCost / $baseQty) : 0;
-                $cogs += ($item->qty * $unitCost);
+                $itemTotalCogs = ($item->qty * $unitCost);
+                $cogs += $itemTotalCogs;
+
+                if (!isset($cogsBreakdown[$item->product_id])) {
+                    $cogsBreakdown[$item->product_id] = [
+                        'product_name' => $item->product->name,
+                        'total_qty' => 0,
+                        'unit_cost' => round($unitCost, 2),
+                        'total_cogs' => 0,
+                        'recipe_details' => [
+                            'base_quantity' => $baseQty,
+                            'raw_materials' => $ingredients
+                        ]
+                    ];
+                }
+                $cogsBreakdown[$item->product_id]['total_qty'] += $item->qty;
+                $cogsBreakdown[$item->product_id]['total_cogs'] = round($cogsBreakdown[$item->product_id]['total_cogs'] + $itemTotalCogs, 2);
             }
         }
 
@@ -130,7 +159,10 @@ class ReportController extends Controller
         $grossProfit = $revenue - $cogs;
 
         // 4. Expenses
-        $totalExpenses = \App\Models\Expense::whereBetween('date', [$startDate, $endDate])->sum('amount');
+        $expenses = \App\Models\Expense::whereBetween('date', [$startDate, $endDate])
+            ->orderBy('date', 'desc')
+            ->get();
+        $totalExpenses = $expenses->sum('amount');
 
         // 5. Net Profit
         $netProfit = $grossProfit - $totalExpenses;
@@ -139,8 +171,10 @@ class ReportController extends Controller
             'range' => ['start' => $startDate, 'end' => $endDate],
             'revenue' => round($revenue, 2),
             'cogs' => round($cogs, 2),
+            'cogs_breakdown' => array_values($cogsBreakdown),
             'gross_profit' => round($grossProfit, 2),
-            'expenses' => round($totalExpenses, 2),
+            'expenses_total' => round($totalExpenses, 2),
+            'expenses_list' => $expenses,
             'net_profit' => round($netProfit, 2)
         ]);
     }

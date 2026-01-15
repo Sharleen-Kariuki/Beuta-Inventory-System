@@ -104,7 +104,7 @@ export default function ReportsView() {
             {!loading && !error && activeTab === 'financials' && financialsData && (
                 <div className="space-y-6">
                     <div className="flex justify-between items-center bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <h3 className="font-bold text-slate-700">Profit & Loss Statement (Estimated)</h3>
+                        <h3 className="font-bold text-slate-700">Profit & Loss Statement (Audit-Ready)</h3>
                         <div className="flex text-sm space-x-2">
                             <span>Period:</span>
                             <span className="font-mono bg-white px-2 py-0.5 rounded border border-slate-300">Last {dateRange} Days</span>
@@ -142,30 +142,118 @@ export default function ReportsView() {
                         />
                     </div>
 
-                    <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm max-w-2xl mx-auto">
-                        <h4 className="font-bold text-slate-800 text-lg mb-6 text-center border-b pb-4">Financial Summary</h4>
-                        <div className="space-y-3">
-                            <div className="flex justify-between items-center text-sm text-slate-600">
-                                <span>Total Revenue</span>
-                                <span className="font-medium">KSh {financialsData.revenue.toLocaleString()}</span>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* THE STATEMENT */}
+                        <div className="lg:col-span-1 space-y-6">
+                            <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
+                                <h4 className="font-bold text-slate-800 text-lg mb-6 text-center border-b pb-4">Standard P&L</h4>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center text-sm text-slate-600">
+                                        <span>Total Revenue</span>
+                                        <span className="font-medium text-slate-900">KSh {financialsData.revenue.toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm text-red-500">
+                                        <span>(Less) Cost of Goods Sold</span>
+                                        <span className="font-medium">- KSh {financialsData.cogs.toLocaleString()}</span>
+                                    </div>
+                                    <div className="border-t border-slate-200 my-2 pt-2 flex justify-between items-center font-bold text-slate-800">
+                                        <span>Gross Profit</span>
+                                        <span>KSh {financialsData.gross_profit.toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm text-red-500 pt-2">
+                                        <span>(Less) Operating Expenses</span>
+                                        <span className="font-medium">- KSh {financialsData.expenses_total.toLocaleString()}</span>
+                                    </div>
+                                    <div className="border-t-2 border-slate-800 my-2 pt-2 flex justify-between items-center font-black text-xl text-slate-900 bg-slate-50 p-3 rounded-lg mt-4">
+                                        <span>NET PROFIT</span>
+                                        <span className={`${financialsData.net_profit >= 0 ? 'text-teal-600' : 'text-red-600'}`}>
+                                            KSh {financialsData.net_profit.toLocaleString()}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex justify-between items-center text-sm text-red-500">
-                                <span>(Less) Cost of Goods Sold</span>
-                                <span className="font-medium">- KSh {financialsData.cogs.toLocaleString()}</span>
+
+                            {/* Operating Expenses List */}
+                            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <h4 className="font-bold text-slate-700 text-sm uppercase tracking-wider mb-4">Operating Expenses Audit</h4>
+                                <div className="max-h-96 overflow-y-auto space-y-2 pr-2">
+                                    {financialsData.expenses_list?.map(exp => (
+                                        <div key={exp.id} className="flex justify-between items-center p-2 rounded hover:bg-slate-50 border border-transparent hover:border-slate-100">
+                                            <div>
+                                                <p className="text-sm font-medium text-slate-800">{exp.category || 'General Expense'}</p>
+                                                <p className="text-xs text-slate-500">{exp.date} • {exp.description || 'No description'}</p>
+                                            </div>
+                                            <span className="text-sm font-bold text-red-600">KSh {parseFloat(exp.amount).toLocaleString()}</span>
+                                        </div>
+                                    ))}
+                                    {(!financialsData.expenses_list || financialsData.expenses_list.length === 0) && (
+                                        <p className="text-slate-400 text-xs text-center py-4 italic">No expenses recorded in this period.</p>
+                                    )}
+                                </div>
                             </div>
-                            <div className="border-t border-slate-200 my-2 pt-2 flex justify-between items-center font-bold text-slate-800">
-                                <span>Gross Profit</span>
-                                <span>KSh {financialsData.gross_profit.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm text-red-500 pt-2">
-                                <span>(Less) Operating Expenses</span>
-                                <span className="font-medium">- KSh {financialsData.expenses.toLocaleString()}</span>
-                            </div>
-                            <div className="border-t-2 border-slate-800 my-2 pt-2 flex justify-between items-center font-black text-xl text-slate-900 bg-slate-50 p-3 rounded-lg mt-4">
-                                <span>NET PROFIT</span>
-                                <span className={`${financialsData.net_profit >= 0 ? 'text-teal-600' : 'text-red-600'}`}>
-                                    KSh {financialsData.net_profit.toLocaleString()}
-                                </span>
+                        </div>
+
+                        {/* COGS CALCULATION BREAKDOWN */}
+                        <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <h4 className="font-bold text-slate-800 text-lg mb-2">COGS Calculation Breakdown</h4>
+                            <p className="text-xs text-slate-500 mb-6 italic">Visualizing how recipe costs and quantities sold result in the total COGS.</p>
+
+                            <div className="space-y-6">
+                                {financialsData.cogs_breakdown?.map(item => (
+                                    <div key={item.product_name} className="border border-slate-100 rounded-lg overflow-hidden">
+                                        <div className="bg-slate-50 p-3 flex justify-between items-center border-b border-slate-100">
+                                            <div>
+                                                <span className="font-bold text-slate-700">{item.product_name}</span>
+                                                <span className="text-xs text-slate-500 ml-2">({item.total_qty} units sold)</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs text-slate-400">Total Contribution</p>
+                                                <p className="font-bold text-teal-600 text-sm">KSh {item.total_cogs.toLocaleString()}</p>
+                                            </div>
+                                        </div>
+                                        <div className="p-3">
+                                            <table className="w-full text-[11px] text-left">
+                                                <thead>
+                                                    <tr className="text-slate-400 uppercase tracking-tighter">
+                                                        <th className="pb-2 font-medium">Raw Material</th>
+                                                        <th className="pb-2 font-medium">Qty (per {item.recipe_details.base_quantity} units)</th>
+                                                        <th className="pb-2 font-medium text-right">Cost/Unit</th>
+                                                        <th className="pb-2 font-medium text-right">Ext. Cost</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50">
+                                                    {item.recipe_details.raw_materials.map((rm, idx) => (
+                                                        <tr key={idx} className="text-slate-600">
+                                                            <td className="py-2">{rm.material}</td>
+                                                            <td className="py-2">{rm.qty} {rm.unit}</td>
+                                                            <td className="py-2 text-right">KSh {parseFloat(rm.cost_price).toLocaleString()}</td>
+                                                            <td className="py-2 text-right">KSh {rm.total.toLocaleString()}</td>
+                                                        </tr>
+                                                    ))}
+                                                    <tr className="bg-slate-50 font-bold text-slate-800">
+                                                        <td colSpan="3" className="py-2 px-2 text-right">Recipe Total Cost:</td>
+                                                        <td className="py-2 text-right">KSh {item.recipe_details.raw_materials.reduce((sum, rm) => sum + parseFloat(rm.total), 0).toLocaleString()}</td>
+                                                    </tr>
+                                                    <tr className="text-xs font-bold text-teal-700 bg-teal-50">
+                                                        <td colSpan="3" className="py-2 px-2 text-right italic underline">Unit Cost (Recipe Cost / {item.recipe_details.base_quantity}):</td>
+                                                        <td className="py-2 text-right">KSh {item.unit_cost.toLocaleString()}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <div className="mt-4 flex justify-end items-center space-x-2 text-xs">
+                                                <span className="text-slate-400 font-mono">Calculated as:</span>
+                                                <span className="bg-slate-100 px-2 py-1 rounded font-bold text-slate-700">
+                                                    KSh {item.unit_cost.toLocaleString()} (Unit Cost) × {item.total_qty} (Qty Sold) = KSh {item.total_cogs.toLocaleString()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                {(!financialsData.cogs_breakdown || financialsData.cogs_breakdown.length === 0) && (
+                                    <div className="text-center py-12 text-slate-300">
+                                        <p className="italic">No COGS data available for this period.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
