@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://pmdms-backend.test/api',
+    baseURL: import.meta.env.VITE_API_URL || 'http://pmdms-backend.test/api',
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
