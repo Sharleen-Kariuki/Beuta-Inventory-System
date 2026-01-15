@@ -33,6 +33,7 @@ class SaleController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'payment_method' => 'required|string',
             'payment_status' => 'required|string|in:paid,credit,partial',
+            'date' => 'nullable|date',
             'due_date' => 'nullable|date',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -72,7 +73,7 @@ class SaleController extends Controller
             $sale = Sale::create([
                 'invoice_no' => 'INV-' . strtoupper(Str::random(8)),
                 'customer_id' => $validated['customer_id'],
-                'date' => now(), // Default to now
+                'date' => $validated['date'] ?? now(),
                 'payment_method' => $validated['payment_method'],
                 'payment_status' => $validated['payment_status'],
                 'due_date' => $validated['due_date'] ?? null,

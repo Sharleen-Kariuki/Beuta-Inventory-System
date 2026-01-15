@@ -60,9 +60,16 @@ class InventoryController extends Controller
 
     public function destroyRawMaterial($id)
     {
-        $material = RawMaterial::findOrFail($id);
-        $material->delete();
-        return response()->json(null, 204);
+        try {
+            $material = RawMaterial::findOrFail($id);
+            $material->delete();
+            return response()->json(null, 204);
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() == 23000) {
+                return response()->json(['message' => 'Cannot delete this material as it is used in recipes or existing stock records.'], 409);
+            }
+            return response()->json(['message' => 'Server error while deleting material.'], 500);
+        }
     }
 
     // --- Supplier CRUD ---
@@ -95,8 +102,15 @@ class InventoryController extends Controller
 
     public function destroySupplier($id)
     {
-        \App\Models\Supplier::findOrFail($id)->delete();
-        return response()->json(null, 204);
+        try {
+            \App\Models\Supplier::findOrFail($id)->delete();
+            return response()->json(null, 204);
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() == 23000) {
+                return response()->json(['message' => 'Cannot delete supplier because they are linked to existing purchase records.'], 409);
+            }
+            return response()->json(['message' => 'Server error while deleting supplier.'], 500);
+        }
     }
 
     // --- Product CRUD ---
@@ -128,8 +142,15 @@ class InventoryController extends Controller
 
     public function destroyProduct($id)
     {
-        Product::findOrFail($id)->delete();
-        return response()->json(null, 204);
+        try {
+            Product::findOrFail($id)->delete();
+            return response()->json(null, 204);
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() == 23000) {
+                return response()->json(['message' => 'Cannot delete this product as it is part of sales, recipes, or production history.'], 409);
+            }
+            return response()->json(['message' => 'Server error while deleting product.'], 500);
+        }
     }
 
     // --- Restocking ---

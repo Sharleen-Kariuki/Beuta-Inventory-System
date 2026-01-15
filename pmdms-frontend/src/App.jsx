@@ -26,6 +26,7 @@ import SuppliersView from './pages/Suppliers'
 import ProductsView from './pages/Products'
 import InstallmentsView from './pages/Installments'
 import CustomersView from './pages/Customers'
+import ExpensesView from './pages/Expenses'
 import { SpotlightCard } from './components/reactbits/SpotlightCard'
 import api from './lib/axios'
 
@@ -97,6 +98,10 @@ function DashboardLayout() {
           </Link>
           <div className="pt-4 mt-4 border-t border-slate-800">
             <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest block mb-4">Management</span>
+            <Link to="/expenses" className="flex items-center space-x-2 text-slate-300 hover:text-white mb-4">
+              <CurrencyDollarIcon className="h-5 w-5" />
+              <span>Expenses</span>
+            </Link>
             <Link to="/suppliers" className="flex items-center space-x-2 text-slate-300 hover:text-white mb-4">
               <TruckIcon className="h-5 w-5" />
               <span>Suppliers</span>
@@ -124,7 +129,7 @@ function DashboardLayout() {
           <div className="flex items-center space-x-4">
             <div className="text-right">
               <span className="block text-sm font-bold text-slate-700">{user.name}</span>
-              <span className="block text-xs text-slate-500 uppercase">{user.role}</span>
+              <span className="block text-xs text-slate-500 uppercase">ADMIN</span>
             </div>
             <div className="h-10 w-10 bg-teal-500 rounded-full flex items-center justify-center text-white font-bold">
               {user.name ? user.name[0] : 'U'}
@@ -139,6 +144,7 @@ function DashboardLayout() {
           <Route path="/credits" element={<InstallmentsView />} />
           <Route path="/production" element={<ProductionView />} />
           <Route path="/reports" element={<ReportsView />} />
+          <Route path="/expenses" element={<ExpensesView />} />
           <Route path="/suppliers" element={<SuppliersView />} />
           <Route path="/customers" element={<CustomersView />} />
           <Route path="/products-list" element={<ProductsView />} />

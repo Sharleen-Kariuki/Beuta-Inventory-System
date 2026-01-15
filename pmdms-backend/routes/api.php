@@ -12,6 +12,7 @@ use App\Http\Controllers\CustomerController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
@@ -56,17 +57,27 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Restocking
     Route::post('/inventory/restock', [InventoryController::class, 'restock']);
-});
 
-// Inventory Routes (Protected)
-Route::middleware('auth:sanctum')->prefix('inventory')->group(function () {
-    Route::get('/raw-materials', [InventoryController::class, 'indexRawMaterials']);
-    Route::post('/raw-materials', [InventoryController::class, 'storeRawMaterial']);
-    Route::put('/raw-materials/{id}', [InventoryController::class, 'updateRawMaterial']);
-    Route::delete('/raw-materials/{id}', [InventoryController::class, 'destroyRawMaterial']);
+    // Expenses
+    Route::get('/expenses', [\App\Http\Controllers\ExpenseController::class, 'index']);
+    Route::post('/expenses', [\App\Http\Controllers\ExpenseController::class, 'store']);
+    Route::put('/expenses/{id}', [\App\Http\Controllers\ExpenseController::class, 'update']);
+    Route::delete('/expenses/{id}', [\App\Http\Controllers\ExpenseController::class, 'destroy']);
 
-    Route::get('/products', [InventoryController::class, 'indexProducts']);
-    Route::post('/products', [InventoryController::class, 'storeProduct']);
-    Route::put('/products/{id}', [InventoryController::class, 'updateProduct']);
-    Route::delete('/products/{id}', [InventoryController::class, 'destroyProduct']);
+    // Financial Report
+    Route::get('/reports/financials', [\App\Http\Controllers\ReportController::class, 'financials']);
+
+
+    // Inventory Routes (Protected)
+    Route::prefix('inventory')->group(function () {
+        Route::get('/raw-materials', [InventoryController::class, 'indexRawMaterials']);
+        Route::post('/raw-materials', [InventoryController::class, 'storeRawMaterial']);
+        Route::put('/raw-materials/{id}', [InventoryController::class, 'updateRawMaterial']);
+        Route::delete('/raw-materials/{id}', [InventoryController::class, 'destroyRawMaterial']);
+
+        Route::get('/products', [InventoryController::class, 'indexProducts']);
+        Route::post('/products', [InventoryController::class, 'storeProduct']);
+        Route::put('/products/{id}', [InventoryController::class, 'updateProduct']);
+        Route::delete('/products/{id}', [InventoryController::class, 'destroyProduct']);
+    });
 });

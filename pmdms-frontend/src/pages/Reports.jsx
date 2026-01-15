@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from 'react'
 import api from '../lib/axios'
-import { DocumentChartBarIcon, BanknotesIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { DocumentChartBarIcon, BanknotesIcon, ExclamationTriangleIcon, CalculatorIcon, ArrowTrendingUpIcon } from '@heroicons/react/24/outline'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts'
 
 export default function ReportsView() {
     const [activeTab, setActiveTab] = useState('sales')
     const [salesData, setSalesData] = useState(null)
     const [inventoryData, setInventoryData] = useState(null)
+    const [financialsData, setFinancialsData] = useState(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
     const [dateRange, setDateRange] = useState('30') // days
@@ -23,7 +24,7 @@ export default function ReportsView() {
                 .then(res => setSalesData(res.data))
                 .catch(err => {
                     console.error(err)
-                    setError("Failed to load sales data. Please try again.")
+                    setError("Failed to load sales data.")
                 })
                 .finally(() => setLoading(false))
         } else if (activeTab === 'inventory') {
@@ -32,6 +33,20 @@ export default function ReportsView() {
                 .catch(err => {
                     console.error(err)
                     setError("Failed to load inventory data.")
+                })
+                .finally(() => setLoading(false))
+        } else if (activeTab === 'financials') {
+            // For financials, standardizing on current month for P&L usually, but supporting matching range
+            // Let's stick to Month-to-Date for P&L or the selected range.
+            // Using selected date range for consistency.
+            const endDate = new Date().toISOString().split('T')[0]
+            const startDate = new Date(Date.now() - dateRange * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
+            api.get(`/reports/financials?start_date=${startDate}&end_date=${endDate}`)
+                .then(res => setFinancialsData(res.data))
+                .catch(err => {
+                    console.error(err)
+                    setError("Failed to load financial data.")
                 })
                 .finally(() => setLoading(false))
         }
@@ -52,26 +67,32 @@ export default function ReportsView() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold text-slate-800">Business Reports</h2>
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <h2 className="text-xl font-bold text-slate-800">Business Analytics</h2>
 
-                <div className="flex bg-slate-100 p-1 rounded-lg">
+                <div className="flex bg-slate-100 p-1 rounded-lg overflow-x-auto max-w-full">
                     <button
                         onClick={() => setActiveTab('sales')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'sales' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'sales' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         Sales Analysis
                     </button>
                     <button
+                        onClick={() => setActiveTab('financials')}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'financials' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                        P&L Reports
+                    </button>
+                    <button
                         onClick={() => setActiveTab('inventory')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'inventory' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'inventory' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         Inventory Health
                     </button>
                 </div>
             </div>
 
-            {loading && <div className="text-center py-12 text-slate-400 animate-pulse">Running analysis...</div>}
+            {loading && <div className="text-center py-12 text-slate-400 animate-pulse">Processing data...</div>}
 
             {error && (
                 <div className="bg-red-50 text-red-600 p-4 rounded-lg text-center border border-red-200">
@@ -79,6 +100,79 @@ export default function ReportsView() {
                 </div>
             )}
 
+            {/* FINANCIALS TAB */}
+            {!loading && !error && activeTab === 'financials' && financialsData && (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <h3 className="font-bold text-slate-700">Profit & Loss Statement (Estimated)</h3>
+                        <div className="flex text-sm space-x-2">
+                            <span>Period:</span>
+                            <span className="font-mono bg-white px-2 py-0.5 rounded border border-slate-300">Last {dateRange} Days</span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <StatCard
+                            title="Total Revenue"
+                            value={`KSh ${parseFloat(financialsData.revenue).toLocaleString()}`}
+                            subtext="Gross Sales"
+                            icon={BanknotesIcon}
+                            color="blue"
+                        />
+                        <StatCard
+                            title="Cost of Goods Sold"
+                            value={`KSh ${parseFloat(financialsData.cogs).toLocaleString()}`}
+                            subtext="Raw Material Cost"
+                            icon={CalculatorIcon}
+                            color="orange"
+                        />
+                        <StatCard
+                            title="Gross Profit"
+                            value={`KSh ${parseFloat(financialsData.gross_profit).toLocaleString()}`}
+                            subtext="Revenue - COGS"
+                            icon={ArrowTrendingUpIcon}
+                            color={financialsData.gross_profit >= 0 ? 'emerald' : 'red'}
+                        />
+                        <StatCard
+                            title="Net Profit"
+                            value={`KSh ${parseFloat(financialsData.net_profit).toLocaleString()}`}
+                            subtext="Gross Profit - Expenses"
+                            icon={BanknotesIcon}
+                            color={financialsData.net_profit >= 0 ? 'teal' : 'rose'}
+                        />
+                    </div>
+
+                    <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm max-w-2xl mx-auto">
+                        <h4 className="font-bold text-slate-800 text-lg mb-6 text-center border-b pb-4">Financial Summary</h4>
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center text-sm text-slate-600">
+                                <span>Total Revenue</span>
+                                <span className="font-medium">KSh {financialsData.revenue.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm text-red-500">
+                                <span>(Less) Cost of Goods Sold</span>
+                                <span className="font-medium">- KSh {financialsData.cogs.toLocaleString()}</span>
+                            </div>
+                            <div className="border-t border-slate-200 my-2 pt-2 flex justify-between items-center font-bold text-slate-800">
+                                <span>Gross Profit</span>
+                                <span>KSh {financialsData.gross_profit.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm text-red-500 pt-2">
+                                <span>(Less) Operating Expenses</span>
+                                <span className="font-medium">- KSh {financialsData.expenses.toLocaleString()}</span>
+                            </div>
+                            <div className="border-t-2 border-slate-800 my-2 pt-2 flex justify-between items-center font-black text-xl text-slate-900 bg-slate-50 p-3 rounded-lg mt-4">
+                                <span>NET PROFIT</span>
+                                <span className={`${financialsData.net_profit >= 0 ? 'text-teal-600' : 'text-red-600'}`}>
+                                    KSh {financialsData.net_profit.toLocaleString()}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* SALES TAB */}
             {!loading && !error && activeTab === 'sales' && salesData && (
                 <div className="space-y-6">
                     <div className="flex justify-end space-x-2 text-sm">
@@ -184,7 +278,8 @@ export default function ReportsView() {
                 </div>
             )}
 
-            {!loading && activeTab === 'inventory' && inventoryData && (
+            {/* INVENTORY TAB */}
+            {!loading && !error && activeTab === 'inventory' && inventoryData && (
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <StatCard

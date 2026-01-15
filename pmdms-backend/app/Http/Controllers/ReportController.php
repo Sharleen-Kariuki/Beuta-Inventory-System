@@ -93,4 +93,52 @@ class ReportController extends Controller
 
         return response()->json($purchases);
     }
+
+    public function financials(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
+
+        // 1. Total Revenue
+        $revenue = Sale::whereBetween('date', [$startDate, $endDate])->sum('total_amount');
+
+        // 2. Cost of Goods Sold (COGS)
+        // Calculate based on sales items * current recipe cost
+        // Note: This uses CURRENT raw material costs, not historical.
+        $saleItems = SaleItem::whereHas('sale', function ($q) use ($startDate, $endDate) {
+            $q->whereBetween('date', [$startDate, $endDate]);
+        })->get();
+
+        $cogs = 0;
+        foreach ($saleItems as $item) {
+            // Find recipe for product
+            $recipe = \App\Models\Recipe::where('product_id', $item->product_id)->where('is_active', true)->with('items.rawMaterial')->first();
+            if ($recipe) {
+                $recipeCost = $recipe->items->sum(function ($ri) {
+                    return ($ri->quantity_required * $ri->rawMaterial->cost_price);
+                });
+                // Adjust for base quantity yield
+                $unitCost = $recipe->base_quantity > 0 ? ($recipeCost / $recipe->base_quantity) : 0;
+                $cogs += ($item->qty * $unitCost);
+            }
+        }
+
+        // 3. Gross Profit
+        $grossProfit = $revenue - $cogs;
+
+        // 4. Expenses
+        $totalExpenses = \App\Models\Expense::whereBetween('date', [$startDate, $endDate])->sum('amount');
+
+        // 5. Net Profit
+        $netProfit = $grossProfit - $totalExpenses;
+
+        return response()->json([
+            'range' => ['start' => $startDate, 'end' => $endDate],
+            'revenue' => round($revenue, 2),
+            'cogs' => round($cogs, 2),
+            'gross_profit' => round($grossProfit, 2),
+            'expenses' => round($totalExpenses, 2),
+            'net_profit' => round($netProfit, 2)
+        ]);
+    }
 }

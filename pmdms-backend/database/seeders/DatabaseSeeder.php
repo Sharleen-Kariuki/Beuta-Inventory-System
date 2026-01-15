@@ -20,19 +20,10 @@ class DatabaseSeeder extends Seeder
         Model::unguard();
 
         // 1. Users
-        $admin = User::create([
+        User::create([
             'name' => 'Admin User',
             'email' => 'admin@pmdms.local',
             'password' => Hash::make('password'),
-            'role' => 'admin',
-            'is_active' => true,
-        ]);
-
-        $staff = User::create([
-            'name' => 'John Staff',
-            'email' => 'staff@pmdms.local',
-            'password' => Hash::make('password'),
-            'role' => 'staff',
             'is_active' => true,
         ]);
 

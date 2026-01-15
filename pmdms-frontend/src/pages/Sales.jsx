@@ -17,6 +17,7 @@ export default function SalesView() {
     // React Hook Form for Create Sale
     const { register, control, handleSubmit, watch, setValue, reset } = useForm({
         defaultValues: {
+            date: new Date().toISOString().split('T')[0],
             items: [{ product_id: "", qty: 1 }]
         }
     })
@@ -48,7 +49,11 @@ export default function SalesView() {
     }, [])
 
     const openCreateModal = () => {
-        reset({ items: [{ product_id: "", qty: 1 }], num_installments: 1 })
+        reset({
+            date: new Date().toISOString().split('T')[0],
+            items: [{ product_id: "", qty: 1 }],
+            num_installments: 1
+        })
         setIsModalOpen(true)
     }
 
@@ -61,9 +66,9 @@ export default function SalesView() {
                 const amt = total / count;
                 const installments = [];
 
-                // We'll space them out monthly (every 30 days) from now
+                // We'll space them out monthly (every 30 days) from the selected sale date
                 for (let i = 1; i <= count; i++) {
-                    const d = new Date();
+                    const d = new Date(data.date);
                     d.setDate(d.getDate() + (i * 30));
                     installments.push({
                         amount: amt.toFixed(2),
@@ -167,14 +172,24 @@ export default function SalesView() {
                 title="New Sales Invoice"
             >
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Customer</label>
-                        <select {...register("customer_id", { required: true })} className="w-full border-slate-300 rounded-lg p-2 border focus:ring-teal-500">
-                            <option value="">Select Customer</option>
-                            {formData.customers.map(c => (
-                                <option key={c.id} value={c.id}>{c.name}</option>
-                            ))}
-                        </select>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Date</label>
+                            <input
+                                type="date"
+                                {...register("date", { required: true })}
+                                className="w-full border-slate-300 rounded-lg p-2 border focus:ring-teal-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Customer</label>
+                            <select {...register("customer_id", { required: true })} className="w-full border-slate-300 rounded-lg p-2 border focus:ring-teal-500">
+                                <option value="">Select Customer</option>
+                                {formData.customers.map(c => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     <div>

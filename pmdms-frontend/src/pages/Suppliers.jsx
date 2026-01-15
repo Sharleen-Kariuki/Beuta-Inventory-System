@@ -49,7 +49,7 @@ export default function SuppliersView() {
             await api.delete(`/suppliers/${id}`)
             fetchSuppliers()
         } catch (err) {
-            alert("Failed to delete supplier")
+            alert(err.response?.data?.message || "Failed to delete supplier")
         }
     }
 

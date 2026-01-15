@@ -4,13 +4,10 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
-        // Extend Users
         Schema::table('users', function (Blueprint $table) {
-            $table->enum('role', ['admin', 'staff'])->default('staff');
             $table->boolean('is_active')->default(true);
         });
 
@@ -144,7 +141,7 @@ return new class extends Migration
         Schema::dropIfExists('products');
         Schema::dropIfExists('raw_materials');
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['role', 'is_active']);
+            $table->dropColumn(['is_active']);
         });
     }
 };

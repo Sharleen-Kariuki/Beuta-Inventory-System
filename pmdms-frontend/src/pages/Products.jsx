@@ -51,7 +51,7 @@ export default function ProductsView() {
             await api.delete(`/inventory/products/${id}`)
             fetchProducts()
         } catch (err) {
-            alert("Failed to delete product")
+            alert(err.response?.data?.message || "Failed to delete product")
         }
     }
 

@@ -77,7 +77,7 @@ export default function InventoryView() {
             await api.delete(`/inventory/raw-materials/${id}`)
             fetchData() // Refresh
         } catch (err) {
-            alert("Failed to delete item")
+            alert(err.response?.data?.message || "Failed to delete item")
         }
     }
 
@@ -196,12 +196,12 @@ export default function InventoryView() {
                                             </td>
                                             <td className="p-4 text-slate-600">KSh {parseFloat(item.cost_price).toFixed(2)}</td>
                                             <td className="p-4 text-right">
-                                                <div className="flex items-center justify-end space-x-2 transition-opacity">
+                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-end space-x-2">
                                                     <button onClick={() => openEditModal(item)} className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors">
-                                                        <PencilIcon className="h-4.5 w-4.5" />
+                                                        <PencilIcon className="h-5 w-5" />
                                                     </button>
                                                     <button onClick={() => handleDelete(item.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                                                        <TrashIcon className="h-4.5 w-4.5" />
+                                                        <TrashIcon className="h-5 w-5" />
                                                     </button>
                                                 </div>
                                             </td>
