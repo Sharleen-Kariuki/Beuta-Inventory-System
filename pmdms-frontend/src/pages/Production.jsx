@@ -202,8 +202,8 @@ export default function ProductionView() {
                                     <ul className="space-y-1">
                                         {recipe.items.map(item => (
                                             <li key={item.id} className="text-sm flex justify-between">
-                                                <span className="text-slate-700">{item.raw_material?.name}</span>
-                                                <span className="font-mono text-slate-500">{item.quantity_required} {item.raw_material?.unit}</span>
+                                                <span className="text-slate-700">{item.rawMaterial?.name}</span>
+                                                <span className="font-mono text-slate-500">{item.quantity_required} {item.rawMaterial?.unit}</span>
                                             </li>
                                         ))}
                                     </ul>

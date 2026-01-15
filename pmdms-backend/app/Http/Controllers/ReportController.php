@@ -115,10 +115,13 @@ class ReportController extends Controller
             $recipe = \App\Models\Recipe::where('product_id', $item->product_id)->where('is_active', true)->with('items.rawMaterial')->first();
             if ($recipe) {
                 $recipeCost = $recipe->items->sum(function ($ri) {
+                    if (!$ri->rawMaterial)
+                        return 0;
                     return ($ri->quantity_required * $ri->rawMaterial->cost_price);
                 });
                 // Adjust for base quantity yield
-                $unitCost = $recipe->base_quantity > 0 ? ($recipeCost / $recipe->base_quantity) : 0;
+                $baseQty = (float) ($recipe->base_quantity ?? 1);
+                $unitCost = $baseQty > 0 ? ($recipeCost / $baseQty) : 0;
                 $cogs += ($item->qty * $unitCost);
             }
         }

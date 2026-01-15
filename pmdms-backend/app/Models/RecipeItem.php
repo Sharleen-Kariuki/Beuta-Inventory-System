@@ -8,8 +8,8 @@ class RecipeItem extends Model
 {
     protected $guarded = [];
 
-    public function raw_material()
+    public function rawMaterial()
     {
-        return $this->belongsTo(RawMaterial::class);
+        return $this->belongsTo(RawMaterial::class, 'raw_material_id');
     }
 }

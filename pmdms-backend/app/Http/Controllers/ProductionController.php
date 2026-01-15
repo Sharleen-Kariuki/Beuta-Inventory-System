@@ -18,7 +18,7 @@ class ProductionController extends Controller
     public function indexRecipes()
     {
         return response()->json(
-            Recipe::with(['product', 'items.raw_material'])->get()
+            Recipe::with(['product', 'items.rawMaterial'])->get()
         );
     }
 
