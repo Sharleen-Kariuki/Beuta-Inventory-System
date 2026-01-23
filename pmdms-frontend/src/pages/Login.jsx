@@ -2,12 +2,15 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Eye, EyeOff } from 'lucide-react'
 import api from '../lib/axios'
 import Particles from '../components/reactbits/Particles'
 
 export default function Login() {
     const [email, setEmail] = React.useState('')
     const [password, setPassword] = React.useState('')
+    const [showPassword, setShowPassword] =
+        React.useState(false)
     const [error, setError] = React.useState('')
     const navigate = useNavigate()
 
@@ -75,14 +78,27 @@ export default function Login() {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
-                        <input
-                            type="password"
-                            className="w-full bg-slate-950/50 border border-slate-700 rounded-lg text-white px-4 py-2.5 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all outline-none"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                className="w-full bg-slate-950/50 border border-slate-700 rounded-lg text-white pl-4 pr-11 py-2.5 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all outline-none"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-400 transition-colors"
+                            >
+                                {showPassword ? (
+                                    <Eye className="h-5 w-5" />
+                                ) : (
+                                    <EyeOff className="h-5 w-5" />
+                                )}
+                            </button>
+                        </div>
                     </div>
                     <motion.button
                         whileHover={{ scale: 1.02 }}

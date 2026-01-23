@@ -167,6 +167,47 @@ class ReportController extends Controller
         // 5. Net Profit
         $netProfit = $grossProfit - $totalExpenses;
 
+        // 6. Monthly History (Last 6 Months)
+        $monthlyHistory = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $mStart = Carbon::now()->subMonths($i)->startOfMonth();
+            $mEnd = Carbon::now()->subMonths($i)->endOfMonth();
+
+            $mRev = Sale::whereBetween('date', [$mStart, $mEnd])->sum('total_amount');
+            $mExp = \App\Models\Expense::whereBetween('date', [$mStart, $mEnd])->sum('amount');
+
+            $monthlyHistory[] = [
+                'month' => $mStart->format('M Y'),
+                'revenue' => round($mRev, 2),
+                'expenses' => round($mExp, 2),
+                'net_profit' => round($mRev - $mExp, 2) // Simplified (Rev - Exp) for history trend
+            ];
+        }
+
+        // 7. Daily Activities (Merged Sales and Expenses)
+        $activitiesSales = Sale::whereBetween('date', [$startDate, $endDate])
+            ->with('customer')
+            ->get()
+            ->map(fn($s) => [
+                'type' => 'Sale',
+                'date' => $s->date,
+                'description' => 'Invoice #' . $s->invoice_no . ($s->customer ? ' - ' . $s->customer->name : ''),
+                'amount' => $s->total_amount,
+                'is_income' => true
+            ]);
+
+        $activitiesExpenses = \App\Models\Expense::whereBetween('date', [$startDate, $endDate])
+            ->get()
+            ->map(fn($e) => [
+                'type' => 'Expense',
+                'date' => $e->date,
+                'description' => '[' . $e->category . '] ' . $e->description,
+                'amount' => $e->amount,
+                'is_income' => false
+            ]);
+
+        $dailyActivities = $activitiesSales->concat($activitiesExpenses)->sortByDesc('date')->values();
+
         return response()->json([
             'range' => ['start' => $startDate, 'end' => $endDate],
             'revenue' => round($revenue, 2),
@@ -175,7 +216,9 @@ class ReportController extends Controller
             'gross_profit' => round($grossProfit, 2),
             'expenses_total' => round($totalExpenses, 2),
             'expenses_list' => $expenses,
-            'net_profit' => round($netProfit, 2)
+            'net_profit' => round($netProfit, 2),
+            'monthly_history' => $monthlyHistory,
+            'daily_activities' => $dailyActivities
         ]);
     }
 }

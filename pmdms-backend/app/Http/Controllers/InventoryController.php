@@ -120,9 +120,13 @@ class InventoryController extends Controller
             'name' => 'required|string|max:255',
             'sku' => 'required|string|unique:products,sku',
             'selling_price' => 'required|numeric|min:0',
-            'current_stock' => 'required|numeric|min:0',
-            'min_stock_level' => 'required|numeric|min:0',
+            'current_stock' => 'nullable|numeric|min:0',
+            'min_stock_level' => 'nullable|numeric|min:0',
         ]);
+
+        $validated['current_stock'] = $validated['current_stock'] ?? 0;
+        $validated['min_stock_level'] = $validated['min_stock_level'] ?? 0;
+
         return response()->json(Product::create($validated), 201);
     }
 
@@ -133,8 +137,8 @@ class InventoryController extends Controller
             'name' => 'required|string|max:255',
             'sku' => 'required|string|unique:products,sku,' . $product->id,
             'selling_price' => 'required|numeric|min:0',
-            'current_stock' => 'required|numeric|min:0',
-            'min_stock_level' => 'required|numeric|min:0',
+            'current_stock' => 'nullable|numeric|min:0',
+            'min_stock_level' => 'nullable|numeric|min:0',
         ]);
         $product->update($validated);
         return response()->json($product);

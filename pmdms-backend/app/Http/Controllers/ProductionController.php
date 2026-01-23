@@ -49,7 +49,7 @@ class ProductionController extends Controller
             }
 
             DB::commit();
-            return response()->json($recipe->load('items'), 201);
+            return response()->json($recipe->load(['product', 'items.rawMaterial']), 201);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => $e->getMessage()], 400);
@@ -86,7 +86,7 @@ class ProductionController extends Controller
             }
 
             DB::commit();
-            return response()->json($recipe->load('items'), 200);
+            return response()->json($recipe->load(['product', 'items.rawMaterial']), 200);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => $e->getMessage()], 400);

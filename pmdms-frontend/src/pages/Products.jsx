@@ -40,8 +40,6 @@ export default function ProductsView() {
         setValue('name', item.name)
         setValue('sku', item.sku)
         setValue('selling_price', item.selling_price)
-        setValue('current_stock', item.current_stock)
-        setValue('min_stock_level', item.min_stock_level)
         setIsModalOpen(true)
     }
 
@@ -93,7 +91,6 @@ export default function ProductsView() {
                                 <th className="p-4 font-semibold text-slate-700 text-sm">Product Name</th>
                                 <th className="p-4 font-semibold text-slate-700 text-sm">SKU</th>
                                 <th className="p-4 font-semibold text-slate-700 text-sm">Selling Price</th>
-                                <th className="p-4 font-semibold text-slate-700 text-sm">Stock</th>
                                 <th className="p-4 font-semibold text-slate-700 text-sm text-right">Actions</th>
                             </tr>
                         </thead>
@@ -103,11 +100,6 @@ export default function ProductsView() {
                                     <td className="p-4 text-slate-700 font-medium">{item.name}</td>
                                     <td className="p-4 text-slate-500 font-mono text-sm">{item.sku}</td>
                                     <td className="p-4 text-slate-600">KSh {parseFloat(item.selling_price).toFixed(2)}</td>
-                                    <td className="p-4">
-                                        <span className={`font-bold ${item.current_stock < item.min_stock_level ? 'text-red-600' : 'text-slate-700'}`}>
-                                            {item.current_stock}
-                                        </span>
-                                    </td>
                                     <td className="p-4 text-right">
                                         <div className="flex items-center justify-end space-x-2 transition-opacity">
                                             <button onClick={() => openEditModal(item)} className="p-1 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded">
@@ -141,22 +133,12 @@ export default function ProductsView() {
                             <input type="number" step="0.01" {...register("selling_price", { required: true })} className="w-full border-slate-300 rounded-lg p-2 border" />
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Current Stock</label>
-                            <input type="number" step="0.01" {...register("current_stock", { required: true })} className="w-full border-slate-300 rounded-lg p-2 border" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Min Stock Level</label>
-                            <input type="number" step="0.01" {...register("min_stock_level", { required: true })} className="w-full border-slate-300 rounded-lg p-2 border" />
-                        </div>
-                    </div>
                     <div className="pt-4 flex justify-end space-x-3">
                         <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-700">Cancel</button>
                         <button type="submit" className="px-4 py-2 bg-slate-900 text-white rounded-lg">Save Product</button>
                     </div>
                 </form>
             </Modal>
-        </div>
+        </div >
     )
 }
