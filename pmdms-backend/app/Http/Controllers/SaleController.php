@@ -14,7 +14,7 @@ class SaleController extends Controller
     public function index()
     {
         // Fetch all sales, eager load relationships
-        $sales = Sale::with(['customer', 'user', 'items.product', 'installments'])
+        $sales = Sale::with(['user', 'items.product', 'installments'])
             ->latest('date')
             ->latest('created_at')
             ->get();
@@ -30,7 +30,7 @@ class SaleController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'customer_id' => 'required|exists:customers,id',
+            'customer_name' => 'required|string|max:255',
             'payment_method' => 'required|string',
             'payment_status' => 'required|string|in:paid,credit,partial',
             'date' => 'nullable|date',
@@ -72,7 +72,7 @@ class SaleController extends Controller
             // 2. Create Sale
             $sale = Sale::create([
                 'invoice_no' => 'INV-' . strtoupper(Str::random(8)),
-                'customer_id' => $validated['customer_id'],
+                'customer_name' => $validated['customer_name'],
                 'date' => $validated['date'] ?? now(),
                 'payment_method' => $validated['payment_method'],
                 'payment_status' => $validated['payment_status'],
@@ -126,14 +126,13 @@ class SaleController extends Controller
 
     public function show($id)
     {
-        $sale = Sale::with(['customer', 'items.product', 'user'])->findOrFail($id);
+        $sale = Sale::with(['items.product', 'user'])->findOrFail($id);
         return response()->json($sale);
     }
 
     public function formData()
     {
         return response()->json([
-            'customers' => \App\Models\Customer::all(),
             'products' => \App\Models\Product::where('current_stock', '>', 0)->get()
         ]);
     }

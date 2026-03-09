@@ -14,7 +14,6 @@ import {
   TagIcon,
   CubeIcon,
   ClockIcon,
-  UserGroupIcon
 } from '@heroicons/react/24/solid'
 import { motion } from 'framer-motion'
 import Login from './pages/Login'
@@ -25,7 +24,6 @@ import ReportsView from './pages/Reports'
 import SuppliersView from './pages/Suppliers'
 import ProductsView from './pages/Products'
 import InstallmentsView from './pages/Installments'
-import CustomersView from './pages/Customers'
 import ExpensesView from './pages/Expenses'
 import { SpotlightCard } from './components/reactbits/SpotlightCard'
 import api from './lib/axios'
@@ -106,10 +104,6 @@ function DashboardLayout() {
               <TruckIcon className="h-5 w-5" />
               <span>Suppliers</span>
             </Link>
-            <Link to="/customers" className="flex items-center space-x-2 text-slate-300 hover:text-white mb-4">
-              <UserGroupIcon className="h-5 w-5" />
-              <span>Customers</span>
-            </Link>
             <Link to="/products-list" className="flex items-center space-x-2 text-slate-300 hover:text-white">
               <TagIcon className="h-5 w-5" />
               <span>Products</span>
@@ -146,7 +140,6 @@ function DashboardLayout() {
           <Route path="/reports" element={<ReportsView />} />
           <Route path="/expenses" element={<ExpensesView />} />
           <Route path="/suppliers" element={<SuppliersView />} />
-          <Route path="/customers" element={<CustomersView />} />
           <Route path="/products-list" element={<ProductsView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

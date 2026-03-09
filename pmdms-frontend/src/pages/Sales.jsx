@@ -11,7 +11,7 @@ export default function SalesView() {
     const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [viewSale, setViewSale] = useState(null)
-    const [formData, setFormData] = useState({ customers: [], products: [] })
+    const [formData, setFormData] = useState({ products: [] })
     const [openFolder, setOpenFolder] = useState(null)
 
     // React Hook Form for Create Sale
@@ -136,7 +136,7 @@ export default function SalesView() {
                                             INV
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-slate-800">{sale.customer?.name}</h4>
+                                            <h4 className="font-bold text-slate-800">{sale.customer_name}</h4>
                                             <p className="text-xs text-slate-500 font-mono">#{sale.invoice_no}</p>
                                         </div>
                                     </div>
@@ -182,13 +182,13 @@ export default function SalesView() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Customer</label>
-                            <select {...register("customer_id", { required: true })} className="w-full border-slate-300 rounded-lg p-2 border focus:ring-teal-500">
-                                <option value="">Select Customer</option>
-                                {formData.customers.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
-                            </select>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Customer Name</label>
+                            <input
+                                type="text"
+                                {...register("customer_name", { required: true })}
+                                className="w-full border-slate-300 rounded-lg p-2 border focus:ring-teal-500"
+                                placeholder="Enter customer name"
+                            />
                         </div>
                     </div>
 
@@ -295,7 +295,7 @@ export default function SalesView() {
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
                                 <span className="block text-slate-500">Customer</span>
-                                <span className="font-medium">{viewSale.customer?.name}</span>
+                                <span className="font-medium">{viewSale.customer_name}</span>
                             </div>
                             <div>
                                 <span className="block text-slate-500">Date</span>

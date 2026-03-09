@@ -186,12 +186,11 @@ class ReportController extends Controller
 
         // 7. Daily Activities (Merged Sales and Expenses)
         $activitiesSales = Sale::whereBetween('date', [$startDate, $endDate])
-            ->with('customer')
             ->get()
             ->map(fn($s) => [
                 'type' => 'Sale',
                 'date' => $s->date,
-                'description' => 'Invoice #' . $s->invoice_no . ($s->customer ? ' - ' . $s->customer->name : ''),
+                'description' => 'Invoice #' . $s->invoice_no . ($s->customer_name ? ' - ' . $s->customer_name : ''),
                 'amount' => $s->total_amount,
                 'is_income' => true
             ]);

@@ -8,7 +8,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\InstallmentController;
-use App\Http\Controllers\CustomerController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -23,12 +22,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/installments/due-soon', [InstallmentController::class, 'dueSoon']);
     Route::post('/installments/{id}/pay', [InstallmentController::class, 'markAsPaid']);
 
-    // Customers
-    Route::get('/customers', [CustomerController::class, 'index']);
-    Route::post('/customers', [CustomerController::class, 'store']);
-    Route::get('/customers/{id}', [CustomerController::class, 'show']);
-    Route::put('/customers/{id}', [CustomerController::class, 'update']);
-    Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
 
     // Production & Recipes
     Route::get('/recipes', [ProductionController::class, 'indexRecipes']);

@@ -113,7 +113,7 @@ export default function Installments() {
                                 return (
                                     <tr key={inst.id} className="hover:bg-slate-50/50 transition-colors group">
                                         <td className="px-6 py-4">
-                                            <div className="font-medium text-slate-800">{inst.sale?.customer?.name}</div>
+                                            <div className="font-medium text-slate-800">{inst.sale?.customer_name}</div>
                                             <div className="text-xs text-slate-400 font-mono">#{inst.sale?.invoice_no}</div>
                                         </td>
                                         <td className="px-6 py-4">
@@ -178,7 +178,7 @@ export default function Installments() {
                         <div className="bg-slate-50 p-4 rounded-xl space-y-2">
                             <div className="flex justify-between text-sm">
                                 <span className="text-slate-500">Customer</span>
-                                <span className="font-semibold">{selectedInstallment.sale?.customer?.name}</span>
+                                <span className="font-semibold">{selectedInstallment.sale?.customer_name}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-slate-500">Invoice</span>

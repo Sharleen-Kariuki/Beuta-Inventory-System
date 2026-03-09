@@ -11,7 +11,7 @@ class InstallmentController extends Controller
 {
     public function index()
     {
-        $installments = Installment::with(['sale.customer', 'sale.items.product'])
+        $installments = Installment::with(['sale.items.product'])
             ->orderBy('due_date', 'asc')
             ->get();
 
@@ -59,7 +59,7 @@ class InstallmentController extends Controller
     public function dueSoon()
     {
         $days = 7; // Look ahead 7 days
-        $installments = Installment::with(['sale.customer'])
+        $installments = Installment::with(['sale'])
             ->where('status', 'pending')
             ->where('due_date', '<=', now()->addDays($days))
             ->orderBy('due_date', 'asc')
